@@ -10,9 +10,9 @@ An intelligent, multi-stage accounts payable ingestion and compliance audit work
   
 * **`stage2_validation.py`** The Database Compliance Controller. A deterministic Python validation engine that queries local SQLite (`inventory.db`) data toolsets to audit warehouse stock limits, isolate unknown SKU assets, and enforce multi-layered financial arithmetic guardrails.
 
-**`stage3_approval.py`**  Multi-Agent Negotiation Loop. Simulates a conversational, back-and-forth state machine between a Finance VP Agent and a Supplier Account Agent to resolve stock/price anomalies up to a 6-turn maximum before building a final ledger entry. 
+* **`stage3_approval.py`**  Multi-Agent Negotiation Loop. Simulates a conversational, back-and-forth state machine between a Finance VP Agent and a Supplier Account Agent to resolve stock/price anomalies up to a 6-turn maximum before building a final ledger entry. 
 
-**`stage4_payment.py`** Payment Routing Engine. Evaluates the executive authorization state. If approved, executes an official mock banking API transaction routing function; if denied, acts as a compliance gate to block funds and log the audit failure. 
+* **`stage4_payment.py`** Payment Routing Engine. Evaluates the executive authorization state. If approved, executes an official mock banking API transaction routing function; if denied, acts as a compliance gate to block funds and log the audit failure. 
 
 * **`init_db.py`** Database initializer utility. Seeds the local SQLite database (`inventory.db`) with test mock product rows, unit prices, and explicit inventory quantities to trigger boundary edge cases.
   
