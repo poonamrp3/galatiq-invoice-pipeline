@@ -1,0 +1,7 @@
+Invoice Number,Vendor,Date,Due Date,Item,Qty,Unit Price,Line Total
+INV-1007,MegaWidgets Corp,01/28/2026,02/28/2026,WidgetA,20,250.00,5000.00
+INV-1007,MegaWidgets Corp,01/28/2026,02/28/2026,WidgetB,15,500.00,7500.00
+INV-1007,MegaWidgets Corp,01/28/2026,02/28/2026,GadgetX,3,750.00,2250.00
+,,,,,,Subtotal:,14750.00
+,,,,,,Tax (6%):,885.00
+,,,,,,Total:,15525.00

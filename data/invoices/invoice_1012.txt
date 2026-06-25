@@ -1,0 +1,28 @@
+                    I N V O I C E
+
+  FROM:  QuickShip Distributers
+         (formerly FastShip Ltd.)
+
+  INV NO:    INV 1012
+  DATE:      26-Jan-2O26
+  DUE:       25-Feb-2026
+
+  TO:    ACME Corp
+         Attn: Accounts Payble
+
+  ----------------------------------------
+  ITEM          QTY    PRICE     TOTAL
+  ----------------------------------------
+  Widget A       12    $250     $3,000.00
+  WidgetB         7    $500     $3,500.O0
+  Gadget X        4    $750     $3,000.00
+  ----------------------------------------
+                  SUBTOTAL:     $9,500.00
+                  TAX (5%):       $475.00
+                  TOTAL:        $9,975.00
+
+  NOTES: Ref PO-20260115. Deliver to
+         warehouse dock B. Contact Jim
+         at ext 4421 with questions.
+
+  Terms: Net 30

@@ -1,0 +1,13 @@
+INVOCE
+
+Vndr: Gadgets Co.
+Inv #: 1002
+Dt: Jan 30 2026
+Due Dt: 2026-01-30
+
+Itms:
+  GadgetX  qty 20   @ $750 ea
+
+Amt: $15,000.00
+
+Pymnt Terms: Net 30

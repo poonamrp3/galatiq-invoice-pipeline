@@ -1,0 +1,22 @@
+INVOICE #INV-1010
+
+Bill To: Acme Corp Manufacturing Division
+
+Vendor: Consolidated Materials Group
+Date: January 27, 2026
+Due Date: February 26, 2026
+
+Description                Qty     Rate        Amount
+-------------------------------------------------------
+WidgetA                     8      $250.00     $2,000.00
+WidgetB                     4      $500.00     $2,000.00
+GadgetX                     2      $750.00     $1,500.00
+WidgetA (rush order)        4      $300.00     $1,200.00
+                                           -----------
+                               Subtotal:     $6,700.00
+                               Sales Tax:      $335.00
+                               Shipping:       $150.00
+                               TOTAL:        $7,185.00
+
+Payment Terms: Net 30
+Thank you for your business!

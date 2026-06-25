@@ -1,0 +1,19 @@
+{
+  "invoice_number": "INV-1009",
+  "vendor": {
+    "name": "",
+    "address": null
+  },
+  "date": "2026-01-15",
+  "due_date": null,
+  "line_items": [
+    {"item": "WidgetA", "quantity": -5, "unit_price": 250.00},
+    {"item": "WidgetB", "quantity": 2, "unit_price": 500.00}
+  ],
+  "subtotal": 1000.00,
+  "tax_rate": 0.0,
+  "tax_amount": 0.00,
+  "total": -250.00,
+  "currency": "USD",
+  "payment_terms": ""
+}

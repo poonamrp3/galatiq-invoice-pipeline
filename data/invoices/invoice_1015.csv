@@ -1,0 +1,7 @@
+Invoice Number,Vendor,Date,Due Date,Item,Qty,Unit Price,Line Total
+INV-1015,Reliable Components Inc.,2026-01-29,2026-02-28,WidgetA,10,250.00,2500.00
+INV-1015,Reliable Components Inc.,2026-01-29,2026-02-28,WidgetB,5,500.00,2500.00
+INV-1015,Reliable Components Inc.,2026-01-29,2026-02-28,GadgetX,2,750.00,1500.00
+,,,,,,Subtotal:,6500.00
+,,,,,,Tax (0%):,0.00
+,,,,,,Total:,6500.00

@@ -1,0 +1,24 @@
+From: billing@noproduct.biz
+To: accounts@acmecorp.com
+Subject: Invoice Attached - Please Process
+
+Hi,
+
+Please find the invoice details below:
+
+  Vendor: NoProd Industries
+  Invoice: INV-1008
+  Date: 2026-01-10
+  Due: 2026-01-20
+
+  Items Ordered:
+    - SuperGizmo       x12     $400.00 each
+    - MegaSprocket     x6      $850.00 each
+
+  Total: $9,900.00
+
+Please process at your earliest convenience.
+
+Best regards,
+Accounts Receivable
+NoProd Industries

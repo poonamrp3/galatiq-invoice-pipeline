@@ -1,0 +1,20 @@
+{
+  "invoice_number": "INV-1005",
+  "vendor": {
+    "name": "Global Supply Chain Partners",
+    "address": "1600 Pennsylvania Ave, Washington, DC 20500"
+  },
+  "date": "2026-01-18",
+  "due_date": "2026-03-18",
+  "line_items": [
+    {"item": "WidgetA", "quantity": 14, "unit_price": 250.00},
+    {"item": "GadgetX", "quantity": 8, "unit_price": 750.00},
+    {"item": "WidgetB", "quantity": 10, "unit_price": 500.00}
+  ],
+  "subtotal": 14500.00,
+  "tax_rate": 0.05,
+  "tax_amount": 725.00,
+  "total": 15225.00,
+  "currency": "USD",
+  "payment_terms": "Net 60"
+}

@@ -1,0 +1,15 @@
+field,value
+invoice_number,INV-1006
+vendor,Acme Industrial Supplies
+date,2026-01-25
+due_date,2026-02-10
+item,WidgetA
+quantity,5
+unit_price,250.00
+item,WidgetB
+quantity,3
+unit_price,500.00
+subtotal,2750.00
+tax,0.00
+total,2750.00
+payment_terms,Net 15

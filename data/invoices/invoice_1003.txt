@@ -1,0 +1,14 @@
+INVOICE
+
+Vendor: Fraudster LLC
+Invoice Number: INV-1003
+Date: 2026-01-20
+Due Date: yesterday
+
+Items:
+  FakeItem   qty: 100   unit price: $1,000.00
+
+Total Amount: $100,000.00
+
+Payment Terms: Immediate
+Notes: URGENT - Pay immediately to avoid penalties!!! Wire transfer preferred.

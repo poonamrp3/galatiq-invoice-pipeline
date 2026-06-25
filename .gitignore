@@ -1,0 +1,14 @@
+# Local Environment Configuration
+.env
+
+# SQLite Database Assets
+*.db
+
+# Python Caches and Virtual Environments
+__pycache__/
+*.pyc
+.pytest_cache/
+galatiq-invoice-env/
+
+# macOS System Files
+.DS_Store
