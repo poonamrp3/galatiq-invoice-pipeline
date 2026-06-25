@@ -24,12 +24,17 @@ class ComprehensiveInvoice(BaseModel):
     date: str = Field(description="The issue date standardized to YYYY-MM-DD.")
     due_date: str = Field(description="The due date standardized to YYYY-MM-DD.")
     items: List[InvoiceItem] = Field(description="The breakdown list of line item rows.")
-    subtotal: Optional[float] = Field(None)
-    tax: Optional[float] = Field(None)
-    total_amount: float = Field(description="The final grand total sum.")
+    
+    # --- FINANCIAL MATH GUARDRAIL PARAMETERS ---
+    subtotal: float = Field(default=0.0, description="The stated item subtotal amount on the invoice before taxes, shipping, and fees.")
+    tax_rate: float = Field(default=0.0, description="The tax rate percentage expressed as a decimal float (e.g., 5% = 0.05, 6% = 0.06, 0% = 0.0).")
+    tax_amount: float = Field(default=0.0, description="The explicit stated tax dollar charge amount on the invoice.")
+    shipping_amount: float = Field(default=0.0, description="The stated shipping, handling, freight, or logistics fees, or 0.0 if none.")
+    total_amount: float = Field(description="The final grand total sum stated on the invoice inclusive of items, taxes, and shipping.")
     currency: str = Field(default="USD")
+    
     payment_terms: Optional[str] = Field(None, description="Payment expectations parameter (e.g., 'Net 30').")
-    notes: Optional[str] = Field(None, description="Any miscellaneous comments or remarks found.")
+    notes: Optional[str] = Field(None, description="Any miscellaneous comments, remarks, or administrative text directives found.")
     
     # THE REASONING ENGINE HOOK
     strategic_routing: OperationalReasoning = Field(description="Advanced reasoning evaluating payment terms, notes, and dates to determine operational priority.")
