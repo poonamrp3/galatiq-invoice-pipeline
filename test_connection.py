@@ -1,6 +1,7 @@
 # test_connection.py
 import os
 from dotenv import load_dotenv
+from openai import OpenAI
 
 # Load environmental variables from your local .env file
 load_dotenv()
@@ -11,7 +12,6 @@ def test_raw_connection():
     # 1. New Priority: Test Routing for Docker Gemini Web API Bridge
     if os.getenv("USE_DOCKER_PROXY") == "TRUE":
         print("Detected USE_DOCKER_PROXY=TRUE. Initializing Docker API Bridge container loop...", flush=True)
-        from openai import OpenAI
         client = OpenAI(
             api_key="none",  # Default fallback key inside the container's config.json
             base_url="http://localhost:8081/v1"
@@ -30,11 +30,34 @@ def test_raw_connection():
         print("\n--- Docker Proxy Response Success ---")
         print(completion.choices[0].message.content)
         print("---------------------------------")
+    
+        # 2. Together AI
+    elif os.getenv("TOGETHER_API_KEY"):
+        print("Detected TOGETHER_API_KEY. Initializing Together AI...", flush=True)
+
+        client = OpenAI(
+            api_key=os.getenv("TOGETHER_API_KEY"),
+            base_url="https://api.together.xyz/v1"
+        )
+
+        target_model = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+        #target_model = "Qwen/Qwen2.5-14B-Instruct"
+        #target_model = "google/gemma-4-31B-it"
+        #target_model = "deepseek-ai/DeepSeek-V4-Pro"
+        
+
+        completion = client.chat.completions.create(
+            model=target_model,
+            messages=[{"role": "user", "content": "Hello! Confirm connection."}]
+        )
+
+        print("\n--- Together AI Response Success ---")
+        print(completion.choices[0].message.content)
+        print("---------------------------------")
 
     # 2. Test Routing for xAI Grok (Galatiq's Production Setup)
     elif os.getenv("XAI_API_KEY"):
         print("Detected XAI_API_KEY. Initializing Grok connection loop...", flush=True)
-        from openai import OpenAI
         client = OpenAI(
             api_key=os.getenv("XAI_API_KEY"),
             base_url="https://api.x.ai/v1"

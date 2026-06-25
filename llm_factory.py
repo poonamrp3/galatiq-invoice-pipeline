@@ -3,12 +3,14 @@ import os
 import json
 from dotenv import load_dotenv
 from openai import OpenAI
+from google import genai
 
 load_dotenv()
 
 # Keep keys active at the top of the workspace framework per request
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GROK_API_KEY = os.environ.get("GROK_API_KEY", "")
+TOGETHER_API_KEY = os.environ.get("TOGETHER_API_KEY", "")  # ADDED
 
 class LLMProviderEngine:
     def __init__(self):
@@ -38,7 +40,20 @@ class LLMProviderEngine:
             )
             print(f"[SYSTEM] Active Client Engine: Local Gemini Web Proxy ({self.model_name})", flush=True)
             return
-
+        
+        # 2. OPTION B: Together AI Cloud Route  
+        elif os.getenv("TOGETHER_API_KEY"):  
+            self.client = OpenAI( 
+                api_key=os.getenv("TOGETHER_API_KEY"),  
+                base_url="https://api.together.xyz/v1" 
+            )  
+            self.provider = "TOGETHER"  
+            #self.model_name = "google/gemma-4-31B-it"  
+            #self.model_name = "deepseek-ai/DeepSeek-V4-Pro"
+            self.model_name= "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+            print(f"[SYSTEM] Active Client Engine: Together AI ({self.model_name})", flush=True) 
+            return  
+           
         # 2. OPTION B: Production xAI Grok-3 Cloud Route
         if os.getenv("XAI_API_KEY"):
             self.provider = "GROK"
@@ -48,12 +63,13 @@ class LLMProviderEngine:
 
         # 3. OPTION C: Production Google Gemini Cloud API Route
         elif os.getenv("GEMINI_API_KEY"):
-            from google import genai
+            
             self.client = genai.Client()
             self.provider = "GEMINI"
             self.model_name = "gemini-2.5-flash"
             print("[SYSTEM] Active Client Engine: Google Gemini 2.5 (Official API)", flush=True)
-            
+        
+ 
         else:
             raise ValueError("Configuration Error: No active engine route detected. Verify your .env keys.")
 
