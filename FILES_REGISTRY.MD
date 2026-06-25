@@ -6,6 +6,7 @@ An intelligent, multi-stage accounts payable ingestion and compliance audit work
 
 * **`llm_factory.py`** The core connectivity engine. Intercepts LLM calls and adaptive configurations, natively routing payloads to a cost-effective local `gemini-web-to-api` Docker proxy wrapper targeting the `gemini-advanced` web interface.
   
+  
 * **`stage1_ingestion.py`** The AI Ingestion Agent. Leverages Pydantic `BaseModel` structures (`ComprehensiveInvoice`, `InvoiceItem`, `OperationalReasoning`) to extract unstructured textual document data into strict, type-validated, machine-readable JSON contracts.
   
 * **`stage2_validation.py`** The Database Compliance Controller. A deterministic Python validation engine that queries local SQLite (`inventory.db`) data toolsets to audit warehouse stock limits, isolate unknown SKU assets, and enforce multi-layered financial arithmetic guardrails.
