@@ -29,7 +29,7 @@ class LLMProviderEngine:
             print(f"[SYSTEM] Active Client Engine: Docker Gemini Web API Bridge ({self.model_name})", flush=True)
             return
 
-        # 1. OPTION A: Local Gemini Web Proxy Route (Cost-Saving Mode)
+        # 2. OPTION A: Local Gemini Web Proxy Route (Cost-Saving Mode)
         if os.getenv("USE_WEB_PROXY") == "TRUE":
             self.provider = "GEMINI_PROXY"
             self.model_name = "gemini-advanced"
@@ -41,7 +41,7 @@ class LLMProviderEngine:
             print(f"[SYSTEM] Active Client Engine: Local Gemini Web Proxy ({self.model_name})", flush=True)
             return
         
-        # 2. OPTION B: Together AI Cloud Route  
+        # 3. OPTION B: Together AI Cloud Route  
         elif os.getenv("TOGETHER_API_KEY"):  
             self.client = OpenAI( 
                 api_key=os.getenv("TOGETHER_API_KEY"),  
@@ -54,14 +54,14 @@ class LLMProviderEngine:
             print(f"[SYSTEM] Active Client Engine: Together AI ({self.model_name})", flush=True) 
             return  
            
-        # 2. OPTION B: Production xAI Grok-3 Cloud Route
+        # 4. OPTION B: Production xAI Grok-3 Cloud Route
         if os.getenv("XAI_API_KEY"):
             self.provider = "GROK"
             self.client = OpenAI(api_key=os.getenv("XAI_API_KEY"), base_url="https://api.x.ai/v1")
             self.model_name = "grok-3"
             print("[SYSTEM] Active Client Engine: xAI Grok-3", flush=True)
 
-        # 3. OPTION C: Production Google Gemini Cloud API Route
+        # 5. OPTION C: Production Google Gemini Cloud API Route
         elif os.getenv("GEMINI_API_KEY"):
             
             self.client = genai.Client()

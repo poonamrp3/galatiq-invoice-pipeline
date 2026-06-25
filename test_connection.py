@@ -55,7 +55,7 @@ def test_raw_connection():
         print(completion.choices[0].message.content)
         print("---------------------------------")
 
-    # 2. Test Routing for xAI Grok (Galatiq's Production Setup)
+    # 3. Test Routing for xAI Grok (Galatiq's Production Setup)
     elif os.getenv("XAI_API_KEY"):
         print("Detected XAI_API_KEY. Initializing Grok connection loop...", flush=True)
         client = OpenAI(
@@ -74,7 +74,7 @@ def test_raw_connection():
         print(completion.choices[0].message.content)
         print("---------------------------------")
 
-    # 3. Test Routing for Google Gemini (Your Local Development Cloud API)
+    # 4. Test Routing for Google Gemini (Your Local Development Cloud API)
     elif os.getenv("GEMINI_API_KEY"):
         print("Detected GEMINI_API_KEY. Initializing Gemini connection loop...", flush=True)
         from google import genai
