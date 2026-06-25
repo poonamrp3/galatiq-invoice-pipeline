@@ -6,25 +6,35 @@ import webbrowser
 import http.server
 import socketserver
 import threading
+
+# Import your underlying proxy engine and decoupled pipeline stages
 from llm_factory import LLMProviderEngine
 from stage1_ingestion import execute_ingestion_stage
 from stage2_validation import execute_validation_stage
 from stage3_approval import execute_approval_stage
+from stage4_payment import execute_payment_stage  # <--- NEW DECOUPLED IMPORT
 
+# Local UI server port designation
 PORT = 8000
 
 def start_local_ui_server():
     """Spins up a lightweight background web server targeting the ui folder."""
     class QuietHandler(http.server.SimpleHTTPRequestHandler):
         def log_message(self, format, *args):
-            return  # Suppress standard logging traffic in terminal window
+            return  # Suppress browser request traffic noise in terminal
 
     os.chdir("ui")
+    socketserver.TCPServer.allow_reuse_address = True
+    
+    global httpd
     with socketserver.TCPServer(("", PORT), QuietHandler) as httpd:
-        httpd.serve_forever()
+        try:
+            httpd.serve_forever()
+        except Exception:
+            pass
 
 def main():
-    parser = argparse.ArgumentParser(description="Galatiq AP Multi-Agent Orchestrator Pipeline")
+    parser = argparse.ArgumentParser(description="Galatiq Autonomous Invoice Processing Pipeline")
     parser.add_argument("--invoice_path", required=True, help="Local path to invoice file.")
     args = parser.parse_args()
 
@@ -33,35 +43,58 @@ def main():
         print(f"❌ Error: Targeted file path does not exist: {file_path}", flush=True)
         return
 
-    # --- STAGE 0: CONNECTIVITY CHECK ---
-    print("\n--- STAGE 0: CLIENT CONNECTIVITY CHECK ---", flush=True)
+    # Initialize your factory engine (hooks onto active .env choices)
     engine = LLMProviderEngine()
-    
-    # --- STAGE 1: INGESTION PIPELINE ---
-    print("\n--- STAGE 1: INGESTION PIPELINE NODE ---", flush=True)
+
+    # -----------------------------------------------------------------
+    # STAGE 1: DATA INGESTION & EXTRACTION
+    # -----------------------------------------------------------------
+    print("\n[START] Executing Stage 1: LLM Document Ingestion...", flush=True)
     extracted_data = execute_ingestion_stage(file_path, engine)
 
-    # --- STAGE 2: VALIDATION PIPELINE ---
-    print("\n--- STAGE 2: VALIDATION PIPELINE NODE ---", flush=True)
-    system_flags = execute_validation_stage(extracted_data)
+    # -----------------------------------------------------------------
+    # STAGE 2: SQL DATABASE STOCK VALIDATION
+    # -----------------------------------------------------------------
+    print("\n[START] Executing Stage 2: SQLite Inventory Integrity Check...", flush=True)
+    validation_flags = execute_validation_stage(extracted_data)
 
-    # --- STAGE 3: EXECUTIVE VP REFLCTION APPROVAL PIPELINE ---
-    print("\n--- STAGE 3: MULTI-AGENT APPROVAL CRITIQUE NODE ---", flush=True)
-    verdict = execute_approval_stage(file_path, extracted_data, system_flags, engine)
-    print("-" * 62)
+    # -----------------------------------------------------------------
+    # STAGE 3: MULTI-AGENT ADVERSARIAL APPROVAL NEGOTIATION
+    # -----------------------------------------------------------------
+    print("\n[START] Executing Stage 3: Executive Reflection Review & Negotiation...", flush=True)
+    verdict_payload = execute_approval_stage(file_path, extracted_data, validation_flags, engine)
+    print("-" * 66)
 
-    # --- SAVE ENHANCED SNAPSHOT FOR VUE.JS FRONTEND ---
+    # -----------------------------------------------------------------
+    # STAGE 4: STANDALONE PAYMENT ROUTING ENGINE
+    # -----------------------------------------------------------------
+    final_decision = verdict_payload.get("final_decision", "REJECTED")
+    vendor_name = extracted_data.get("vendor", "Unknown Vendor")
+    negotiated_amount = verdict_payload.get("negotiated_total", 0.0)
+
+    # Execute your new decoupled terminal payment showcase
+    payment_status = execute_payment_stage(
+        final_decision=final_decision,
+        vendor=vendor_name,
+        amount=negotiated_amount
+    )
+
+    # -----------------------------------------------------------------
+    # EXPORT PIPELINE SNAPSHOT SNAPSHOT FOR VUE.JS FRONTEND
+    # -----------------------------------------------------------------
     os.makedirs("ui", exist_ok=True)
     session_payload = {
         "invoice_name": os.path.basename(file_path),
         "extracted_data": extracted_data,
-        "validation_flags": system_flags,
-        "verdict": verdict
+        "validation_flags": validation_flags,
+        "verdict": verdict_payload
     }
     with open("ui/session.json", "w") as f:
         json.dump(session_payload, f, indent=2)
 
-    # --- LAUNCH GRAPHICAL MONITOR LAYER ---
+    # -----------------------------------------------------------------
+    # TRIGGER DISCOVERY DASHBOARD OVERLAY SERVER
+    # -----------------------------------------------------------------
     print("\n🖥️  Launching Live Graphical UI Processing Screen...", flush=True)
     
     server_thread = threading.Thread(target=start_local_ui_server, daemon=True)
@@ -74,10 +107,11 @@ def main():
         server_thread.join()
     except KeyboardInterrupt:
         print("\n👋 UI session closed cleanly.", flush=True)
+        if 'httpd' in globals():
+            httpd.shutdown()
 
 if __name__ == "__main__":
     try:
-        print("[START] Multi-Agent Processing Sequence Activated.", flush=True)
         main()
     except Exception as e:
-        print(f"\n💥 PIPELINE EXCEPTION:\n{str(e)}", flush=True)
+        print(f"\n💥 SYSTEM PIPELINE ERROR:\n{str(e)}", flush=True)

@@ -6,16 +6,32 @@ from openai import OpenAI
 
 load_dotenv()
 
+# Keep keys active at the top of the workspace framework per request
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GROK_API_KEY = os.environ.get("GROK_API_KEY", "")
+
 class LLMProviderEngine:
     def __init__(self):
         self.provider = None
         self.client = None
         self.model_name = None
 
+        # 1. OPTION A-1: Docker Gemini Web API Bridge (New Integration Layer)
+        if os.getenv("USE_DOCKER_PROXY") == "TRUE":
+            self.provider = "GEMINI_DOCKER_PROXY"
+            self.model_name = "gemini-3.5-flash-thinking"
+            self.client = OpenAI(
+                base_url="http://localhost:8081/v1",
+                api_key="sk-your-key"  # Default fallback API string in config.json
+            )
+            print(f"[SYSTEM] Active Client Engine: Docker Gemini Web API Bridge ({self.model_name})", flush=True)
+            return
+
         # 1. OPTION A: Local Gemini Web Proxy Route (Cost-Saving Mode)
         if os.getenv("USE_WEB_PROXY") == "TRUE":
             self.provider = "GEMINI_PROXY"
             self.model_name = "gemini-advanced"
+            #self.model_name = "gemini-1.5-flash"
             self.client = OpenAI(
                 api_key="mock-cookie-key", # Required by the client shell, proxy uses browser cookies
                 base_url="http://localhost:4981/openai/v1"
@@ -47,8 +63,8 @@ class LLMProviderEngine:
         """
         ext = os.path.splitext(file_path)[1].lower()
 
-        # --- BRANCH A: TEXT/FALLBACK PROCESSING (Used by Grok and the Web Proxy) ---
-        if self.provider in ["GEMINI_PROXY", "GROK"] or ext in ['.json', '.txt', '.csv', '.xml']:
+        # --- BRANCH A: TEXT/FALLBACK PROCESSING (Used by Grok, Docker Bridge, and the Web Proxy) ---
+        if self.provider in ["GEMINI_DOCKER_PROXY", "GEMINI_PROXY", "GROK"] or ext in ['.json', '.txt', '.csv', '.xml']:
             if ext == '.pdf':
                 import pdfplumber
                 with pdfplumber.open(file_path) as pdf:

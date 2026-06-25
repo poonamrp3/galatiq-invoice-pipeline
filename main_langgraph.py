@@ -2,63 +2,83 @@
 import argparse
 import os
 import json
+import webbrowser
+import http.server
+import socketserver
+import threading
 from typing import Dict, Any, List
 from typing_extensions import TypedDict
+
+# LangGraph core engine components
 from langgraph.graph import StateGraph, END
 
-# Import your untouched, modular agent files
+# Import your multi-stage decoupled pipeline components
 from llm_factory import LLMProviderEngine
 from stage1_ingestion import execute_ingestion_stage
 from stage2_validation import execute_validation_stage
+from stage3_approval import execute_approval_stage
+from stage4_payment import execute_payment_stage  # <--- NEW IMPORT
+
+# Local UI server port designation
+PORT = 8000
 
 # =====================================================================
-# 1. DEFINE THE ORCHESTRATOR GRAPH STATE CONTRACT
+# 1. STATE DEFINITION SCHEMA
 # =====================================================================
 class PipelineState(TypedDict):
-    invoice_path: str
+    file_path: str
+    engine: LLMProviderEngine
     extracted_data: Dict[str, Any]
-    system_flags: List[str]
-
-# Initialize the shared proxy engine once globally
-engine = LLMProviderEngine()
+    validation_flags: List[str]
+    verdict: Dict[str, Any]
 
 # =====================================================================
-# 2. WRAP YOUR PIPELINE STAGES INTO GRAPH NODES
+# 2. STATE GRAPH NODE WORKERS
 # =====================================================================
 def ingestion_node(state: PipelineState) -> Dict[str, Any]:
-    print("\n--- [LANGGRAPH] NODE 1: INGESTION PIPELINE NODE ---", flush=True)
-    # Pass the custom file path from the state into your ingestion agent
-    data = execute_ingestion_stage(state["invoice_path"], engine)
+    print("\n--- [LANGGRAPH] NODE: INGESTION PIPELINE ---", flush=True)
+    data = execute_ingestion_stage(state["file_path"], state["engine"])
     return {"extracted_data": data}
 
 def validation_node(state: PipelineState) -> Dict[str, Any]:
-    print("\n--- [LANGGRAPH] NODE 2: VALIDATION PIPELINE NODE ---", flush=True)
-    # Pass the data dict from the state into your SQLite validation agent
+    print("\n--- [LANGGRAPH] NODE: SQL INTEGRATION VALIDATION ---", flush=True)
     flags = execute_validation_stage(state["extracted_data"])
-    return {"system_flags": flags}
+    return {"validation_flags": flags}
+
+def approval_node(state: PipelineState) -> Dict[str, Any]:
+    print("\n--- [LANGGRAPH] NODE: VP EXECUTVE REVIEW & REFLCTION ---", flush=True)
+    verdict = execute_approval_stage(
+        state["file_path"], 
+        state["extracted_data"], 
+        state["validation_flags"], 
+        state["engine"]
+    )
+    return {"verdict": verdict}
 
 # =====================================================================
-# 3. BUILD THE ORCHESTRATION GRAPH COMPILER
+# 3. SILENT LOCAL WEB SERVER THREAD
 # =====================================================================
-workflow = StateGraph(PipelineState)
+def start_local_ui_server():
+    """Spins up a lightweight background web server targeting the ui folder."""
+    class QuietHandler(http.server.SimpleHTTPRequestHandler):
+        def log_message(self, format, *args):
+            return
 
-# Define our execution nodes
-workflow.add_node("stage1_ingest", ingestion_node)
-workflow.add_node("stage2_validate", validation_node)
-
-# Map out our directed edges sequence
-workflow.set_entry_point("stage1_ingest")
-workflow.add_edge("stage1_ingest", "stage2_validate")
-workflow.add_edge("stage2_validate", END)
-
-# Compile into an executable state machine application
-graph_orchestrator = workflow.compile()
+    os.chdir("ui")
+    socketserver.TCPServer.allow_reuse_address = True
+    
+    global httpd
+    with socketserver.TCPServer(("", PORT), QuietHandler) as httpd:
+        try:
+            httpd.serve_forever()
+        except Exception:
+            pass
 
 # =====================================================================
-# 4. COMMAND LINE ENTRY POINT RUNNER
+# 4. SYSTEM RUNNER PIPELINE
 # =====================================================================
 def main():
-    parser = argparse.ArgumentParser(description="Galatiq AP LangGraph Orchestrator Pipeline")
+    parser = argparse.ArgumentParser(description="Galatiq AP LangGraph State Orchestrator Pipeline")
     parser.add_argument("--invoice_path", required=True, help="Local path to invoice file.")
     args = parser.parse_args()
 
@@ -67,44 +87,79 @@ def main():
         print(f"❌ Error: Targeted file path does not exist: {file_path}", flush=True)
         return
 
-    print("\n[START] LangGraph Orchestrator Runtime Activated.", flush=True)
-    
-    # Initialize the graph conveyor belt with the command line input argument
-    initial_inputs = {"invoice_path": file_path}
-    
-    # Fire up the graph processing engine
-    final_state = graph_orchestrator.invoke(initial_inputs)
-    
-    # Extract data maps from the final state snapshot for printing
-    extracted_data = final_state.get("extracted_data", {})
-    routing = extracted_data.get("strategic_routing", {})
-    system_flags = final_state.get("system_flags", [])
+    # Initialize your factory engine
+    engine = LLMProviderEngine()
 
-    print("\n================== LANGGRAPH ORCHESTRATION FINAL SUMMARY ==================")
-    print("[STAGE 1: EXTRACTED STRUCTURAL DATA]")
-    print(f"Vendor Detected    : {extracted_data.get('vendor')}")
-    print(f"Grand Total Parsed : {extracted_data.get('currency')} {extracted_data.get('total_amount')}")
-    print(json.dumps(extracted_data, indent=2))
-    print("-" * 74)
+    # --- COMPILE STATE GRAPH ARCHITECTURE ---
+    workflow = StateGraph(PipelineState)
+
+    workflow.add_node("ingest", ingestion_node)
+    workflow.add_node("validate", validation_node)
+    workflow.add_node("approve", approval_node)
+
+    workflow.set_entry_point("ingest")
+    workflow.add_edge("ingest", "validate")
+    workflow.add_edge("validate", "approve")
+    workflow.add_edge("approve", END)
+
+    app = workflow.compile()
+
+    # --- RUN THE AGENT GRAPH ---
+    print("\n[START] LangGraph Stateful Execution Pipeline Triggered.", flush=True)
+    initial_state = {
+        "file_path": file_path,
+        "engine": engine,
+        "extracted_data": {},
+        "validation_flags": [],
+        "verdict": {}
+    }
     
-    print("\n[STAGE 1: STRATEGIC REASONING]")
-    print(f"  ▪ Payment Priority   : {routing.get('payment_priority', 'N/A')}")
-    print(f"  ▪ Settlement Buffer : {routing.get('days_to_settlement', 'N/A')} Days remaining")
-    print(f"  ▪ Action Memo       : {routing.get('action_required_memo', 'N/A')}")
-    print("-" * 74)
+    final_output = app.invoke(initial_state)
+    print("-" * 62)
+
+    # =====================================================================
+    # ROUTE TO STAGE 4 DECOUPLED SERVICE (TERMINAL SHOWCASE)
+    # =====================================================================
+    final_decision = final_output["verdict"].get("final_decision", "REJECTED")
+    vendor_name = final_output["extracted_data"].get("vendor", "Unknown Vendor")
+    negotiated_amount = final_output["verdict"].get("negotiated_total", 0.0)
+
+    # Call the new standalone script module
+    payment_status = execute_payment_stage(
+        final_decision=final_decision,
+        vendor=vendor_name,
+        amount=negotiated_amount
+    )
+
+    # --- EXPORT GRAPH STATE SNAPSHOT TO THE VUE.JS FRONTEND ---
+    os.makedirs("ui", exist_ok=True)
+    session_payload = {
+        "invoice_name": os.path.basename(file_path),
+        "extracted_data": final_output["extracted_data"],
+        "validation_flags": final_output["validation_flags"],
+        "verdict": final_output["verdict"]
+    }
+    with open("ui/session.json", "w") as f:
+        json.dump(session_payload, f, indent=2)
+
+    # --- TRIGGER THE DISCOVERY DASHBOARD OVERLAY ---
+    print("\n🖥️  Launching Live Graphical UI Processing Screen...", flush=True)
     
-    print("\n[STAGE 2: DATABASE COGNITIVE COMPLIANCE]")
-    if system_flags:
-        print(f"  ❌ AUDIT WARNING: {len(system_flags)} compliance anomalies flagged:")
-        for flag in system_flags:
-            print(f"    ⚠️  {flag}")
-    else:
-        print("  🟢 PASSED: All parameters successfully cleared by database inventory engine.")
-    print("===========================================================================")
+    server_thread = threading.Thread(target=start_local_ui_server, daemon=True)
+    server_thread.start()
+    
+    webbrowser.open(f"http://127.0.0.1:{PORT}/index.html")
+    
+    print("\n🟢 UI Session Active. Press Ctrl+C in this terminal to terminate when finished.", flush=True)
+    try:
+        server_thread.join()
+    except KeyboardInterrupt:
+        print("\n👋 UI session closed cleanly.", flush=True)
+        if 'httpd' in globals():
+            httpd.shutdown()
 
 if __name__ == "__main__":
     try:
         main()
-        print("\n[END] LangGraph execution sequence completed cleanly.", flush=True)
     except Exception as e:
-        print(f"\n💥 GRAPH RUNTIME EXCEPTION:\n{str(e)}", flush=True)
+        print(f"\n💥 LANGGRAPH RUNTIME FAULT:\n{str(e)}", flush=True)

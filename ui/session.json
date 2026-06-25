@@ -1,48 +1,41 @@
 {
-  "invoice_name": "invoice_1005.json",
+  "invoice_name": "invoice_1004.json",
   "extracted_data": {
-    "vendor": "Global Supply Chain Partners",
-    "invoice_number": "INV-1005",
-    "date": "2026-01-18",
-    "due_date": "2026-03-18",
+    "vendor": "Precision Parts Ltd.",
+    "invoice_number": "INV-1004",
+    "date": "2026-01-22",
+    "due_date": "2026-02-22",
     "items": [
       {
         "name": "WidgetA",
-        "quantity": 14,
+        "quantity": 3,
         "unit_price": 250.0
       },
       {
-        "name": "GadgetX",
-        "quantity": 8,
-        "unit_price": 750.0
-      },
-      {
         "name": "WidgetB",
-        "quantity": 10,
+        "quantity": 2,
         "unit_price": 500.0
       }
     ],
-    "subtotal": 14500.0,
-    "tax_rate": 0.05,
-    "tax_amount": 725.0,
+    "subtotal": 1750.0,
+    "tax_rate": 0.08,
+    "tax_amount": 140.0,
     "shipping_amount": 0.0,
-    "total_amount": 15225.0,
+    "total_amount": 1890.0,
     "currency": "USD",
-    "payment_terms": "Net 60",
+    "payment_terms": "Net 30",
     "notes": null,
     "strategic_routing": {
       "urgency_score": 5,
-      "payment_priority": "IMMEDIATE",
-      "days_to_settlement": -98,
-      "action_required_memo": "Critical: This invoice is 98 days past due relative to the system date (2026-06-24). Immediate payment routing is required despite the original Net 60 terms."
+      "payment_priority": "STANDARD",
+      "days_to_settlement": -122,
+      "action_required_memo": "Invoice is past due by 122 days relative to the system date (2026-06-24). Standard Net 30 payment priority applies, but immediate processing is recommended due to the standard buffer room being completely exhausted."
     }
   },
-  "validation_flags": [
-    "STOCK_MISMATCH: Requested 8 units of 'GadgetX', but only 5 are in stock."
-  ],
+  "validation_flags": [],
   "verdict": {
     "final_decision": "APPROVED",
-    "justification_memo": "Acme Corp initiated a counter-proposal for invoice INV-1005 due to a warehouse mismatch, requesting a reduction of 'GadgetX' from 8 units to 5 units. Global Supply Chain Partners accepted the quantity adjustment. After negotiating payment terms and potential discounts, both parties agreed to finalize the transaction with the adjusted quantity of 5 units of 'GadgetX' under the original Net 60 payment terms. This adjustment resulted in a final subtotal of $12,250.00 and a final total of $12,862.50 inclusive of 5% tax, which was officially approved by Acme Corp Finance.",
-    "negotiated_total": 12180.0
+    "justification_memo": "The invoice INV-1004 from Precision Parts Ltd. for a total of $1,890.00 has been reviewed. There are no system validation flags or stock mismatches detected, and the total falls well below our $10,000 threshold. The invoice is approved for payment under the standard Net 30 terms.",
+    "negotiated_total": 1890.0
   }
 }

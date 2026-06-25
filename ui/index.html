@@ -8,7 +8,7 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen">
-    <div id="app" class="p-8 max-w-6xl mx-auto">
+    <div id="app" class="p-8 max-w-7xl mx-auto">
         
         <header class="mb-8 border-b border-gray-800 pb-6 flex justify-between items-center">
             <div>
@@ -22,8 +22,7 @@
 
         <div class="mb-8 bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-md">
             <h3 class="text-xs uppercase tracking-wider text-gray-400 font-bold font-mono mb-4">Pipeline Status</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div :class="['p-3 rounded-lg border font-mono text-xs transition-all', getStageClass(1)]">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4"> <div :class="['p-3 rounded-lg border font-mono text-xs transition-all', getStageClass(1)]">
                     <div class="font-bold mb-1">STAGE 1: LLM Ingestion</div>
                     <div>{{ stageStatuses[1] }}</div>
                 </div>
@@ -34,6 +33,10 @@
                 <div :class="['p-3 rounded-lg border font-mono text-xs transition-all', getStageClass(3)]">
                     <div class="font-bold mb-1">STAGE 3: VP Negotiation</div>
                     <div>{{ stageStatuses[3] }}</div>
+                </div>
+                <div :class="['p-3 rounded-lg border font-mono text-xs transition-all', getStageClass(4)]">
+                    <div class="font-bold mb-1">STAGE 4: Bank Settlement</div>
+                    <div>{{ stageStatuses[4] }}</div>
                 </div>
             </div>
         </div>
@@ -47,8 +50,42 @@
                     <h3 class="text-2xl font-black mt-1 tracking-wide">{{ displayData.verdict.final_decision }}</h3>
                 </div>
                 <div class="text-right font-mono text-xs">
-                    <div>HUMAN SIGN-OFF REQ: <span class="font-bold">{{ displayData.verdict.requires_human_signature }}</span></div>
+                    <div>HUMAN SIGN-OFF REQ: <span class="font-bold">{{ displayData.verdict.requires_human_signature || 'FALSE' }}</span></div>
                     <div class="mt-1">NET TOTAL: <span class="font-bold">${{ displayData.extracted_data.total_amount?.toFixed(2) }}</span></div>
+                </div>
+            </div>
+
+            <div v-if="stageStatuses[4] === 'Completed'" class="transition-all duration-500">
+                <div v-if="displayData.verdict.final_decision === 'APPROVED'" 
+                     class="bg-emerald-950/40 border border-emerald-500/40 p-6 rounded-xl shadow-xl flex items-center justify-between font-mono text-xs">
+                    <div class="flex items-start gap-4">
+                        <div class="text-2xl mt-1">💳</div>
+                        <div>
+                            <div class="text-emerald-400 font-bold text-sm tracking-wide mb-1">🏁 STAGE 4: WIRE SETTLEMENT RECORDED SUCCESSFULLY</div>
+                            <div class="text-gray-300">Transaction Status: <span class="text-emerald-400 font-bold">RELEASED</span></div>
+                            <div class="text-gray-400 text-[11px] mt-1">Funds transferred cleanly to beneficiary via local mock settlement bank rail.</div>
+                        </div>
+                    </div>
+                    <div class="text-right border-l border-emerald-500/20 pl-6 space-y-1">
+                        <div>RECIPIENT: <b class="text-gray-200">{{ displayData.extracted_data.vendor }}</b></div>
+                        <div>AMOUNT PAID: <b class="text-emerald-400 text-sm">${{ (displayData.verdict.negotiated_total || displayData.extracted_data.total_amount)?.toFixed(2) }}</b></div>
+                    </div>
+                </div>
+
+                <div v-else 
+                     class="bg-red-950/30 border border-red-500/40 p-6 rounded-xl shadow-xl flex items-center justify-between font-mono text-xs">
+                    <div class="flex items-start gap-4">
+                        <div class="text-2xl mt-1">🚨</div>
+                        <div>
+                            <div class="text-red-400 font-bold text-sm tracking-wide mb-1">🏁 STAGE 4: PAYMENT TRANSACTION BLOCKED</div>
+                            <div class="text-gray-300">Transaction Status: <span class="text-red-400 font-bold">HOLD / DENIED</span></div>
+                            <div class="text-gray-400 text-[11px] mt-1">Accounts payable audit gate kept open. Funds retained due to baseline validation conflict or negotiation breakdown.</div>
+                        </div>
+                    </div>
+                    <div class="text-right border-l border-red-500/20 pl-6 space-y-1">
+                        <div>BENEFICIARY: <b class="text-gray-300">{{ displayData.extracted_data.vendor }}</b></div>
+                        <div>REMITTANCE: <b class="text-red-400 font-bold">$0.00</b></div>
+                    </div>
                 </div>
             </div>
 
@@ -78,24 +115,44 @@
                 </div>
 
                 <div class="lg:col-span-2 bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-xl flex flex-col">
-                    <h3 class="text-md font-bold text-gray-200 border-b border-gray-700 pb-3 mb-4 flex items-center gap-2">
-                        💬 Active Negotiation Audit Trail
+                    <h3 class="text-md font-bold text-gray-200 border-b border-gray-700 pb-3 mb-6 flex items-center gap-2">
+                        📊 End-to-End Negotiation Interface (Side-by-Side Log View)
                     </h3>
                     
-                    <div class="space-y-4 max-h-[500px] overflow-y-auto pr-2 font-mono text-xs flex flex-col">
-                        <div v-for="(msg, index) in parsedMessages" :key="index" 
-                             :class="['p-4 rounded-xl max-w-[80%] border shadow-sm transition-all', 
-                                      msg.isInternal ? 'bg-indigo-950/40 border-indigo-500/40 align-self-end self-end text-right' : 'bg-gray-900/80 border-gray-700 align-self-start self-start text-left']">
-                            
-                            <div :class="['text-[10px] font-black uppercase tracking-wider mb-1', 
-                                          msg.isInternal ? 'text-indigo-400' : 'text-amber-400']">
-                                {{ msg.sender }}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 min-h-[400px]">
+                        
+                        <div class="bg-gray-900/40 p-4 rounded-xl border border-gray-800/80 space-y-4 max-h-[550px] overflow-y-auto">
+                            <div class="text-xs font-black uppercase tracking-wider text-amber-400 border-b border-amber-500/20 pb-2 flex justify-between items-center">
+                                <span>🤝 External Vendor Position</span>
+                                <span class="bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded text-[10px]">Supplier Agent</span>
                             </div>
                             
-                            <p class="text-gray-300 leading-relaxed font-sans text-left whitespace-pre-line">
-                                {{ msg.text }}
-                            </p>
+                            <div v-if="vendorMessages.length === 0" class="text-gray-600 text-xs italic p-4 text-center">
+                                Waiting for Vendor statements...
+                            </div>
+                            
+                            <div v-for="(msg, i) in vendorMessages" :key="i" class="bg-gray-900/90 border border-gray-700/60 p-4 rounded-lg shadow-sm">
+                                <div class="text-[10px] font-mono text-amber-400 font-bold mb-1">
+                                    <span class="font-black text-sm block tracking-wide text-amber-500">Supplier</span> Turn {{ i + 1 }}
+                                </div>
+                                <p class="text-gray-300 text-xs leading-relaxed font-sans whitespace-pre-line">{{ msg.text }}</p>
+                            </div>
                         </div>
+
+                        <div class="bg-gray-900/40 p-4 rounded-xl border border-gray-800/80 space-y-4 max-h-[550px] overflow-y-auto">
+                            <div class="text-xs font-black uppercase tracking-wider text-indigo-400 border-b border-indigo-500/20 pb-2 flex justify-between items-center">
+                                <span>💼 Internal Corporate Stance</span>
+                                <span class="bg-indigo-500/10 text-indigo-300 px-2 py-0.5 rounded text-[10px]">Finance VP</span>
+                            </div>
+                            
+                            <div v-for="(msg, i) in vpMessages" :key="i" class="bg-indigo-950/20 border border-indigo-500/30 p-4 rounded-lg shadow-sm">
+                                <div class="text-[10px] font-mono text-indigo-400/80 font-bold mb-1">
+                                    <span class="font-black text-sm block tracking-wide text-indigo-400">VP</span> Turn {{ i + 1 }}
+                                </div>
+                                <p class="text-gray-300 text-xs leading-relaxed font-sans whitespace-pre-line">{{ msg.text }}</p>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -110,41 +167,40 @@
             setup() {
                 const sessionData = ref(null);
                 const displayData = ref(null);
-                const stageStatuses = ref({ 1: 'Waiting...', 2: 'Waiting...', 3: 'Waiting...' });
+                const stageStatuses = ref({ 1: 'Waiting...', 2: 'Waiting...', 3: 'Waiting...', 4: 'Waiting...' }); // Added 4
 
                 // Multi-actor message splitter engine
-                const parsedMessages = computed(() => {
+                const allMessages = computed(() => {
                     if (!displayData.value || !displayData.value.verdict.justification_memo) return [];
                     
                     const rawText = displayData.value.verdict.justification_memo;
-                    
-                    // Splits on the specific sender introductory strings pattern
-                    const turns = rawText.split(/(Dear Gadgets Co\. Team:|Gadgets Co\. Sales Director:)/g);
+                    const turns = rawText.split(/(Acme\sCorp\sVP\s\(Finance\):|[\w\s\d.-]+Sales\sDirector:)/g);
                     
                     let messages = [];
-                    let currentSender = "";
-                    let isInternal = false;
+                    let isVp = false;
 
                     for (let item of turns) {
                         let cleanItem = item.trim();
                         if (!cleanItem) continue;
 
-                        if (cleanItem.includes("Dear Gadgets Co. Team:")) {
-                            currentSender = "Acme Corp Procurement (VP)";
-                            isInternal = true;
-                        } else if (cleanItem.includes("Gadgets Co. Sales Director:")) {
-                            currentSender = "Gadgets Co. Sales Director";
-                            isInternal = false;
+                        if (cleanItem.startsWith("Acme Corp VP (Finance):")) {
+                            isVp = true;
+                        } else if (cleanItem.endsWith("Sales Director:")) {
+                            isVp = false;
                         } else {
-                            messages.push({
-                                sender: currentSender || "System Audit Log Update",
-                                isInternal: isInternal,
-                                text: cleanItem.replace(/^"|"$|^'|'$/g, '') // Stripping quote markers
-                            });
+                            if (cleanItem !== ":" && cleanItem.length > 2) {
+                                messages.push({
+                                    isVp: isVp,
+                                    text: cleanItem.replace(/^"|"$|^'|'$/g, '')
+                                });
+                            }
                         }
                     }
                     return messages;
                 });
+
+                const vpMessages = computed(() => allMessages.value.filter(m => m.isVp));
+                const vendorMessages = computed(() => allMessages.value.filter(m => !m.isVp));
 
                 const getStageClass = (stageNum) => {
                     const status = stageStatuses.value[stageNum];
@@ -170,6 +226,11 @@
                         await new Promise(r => setTimeout(r, 300));
                         stageStatuses.value[3] = 'Completed';
 
+                        // --- NEW STAGE 4 TIMED VISUAL ANIMATION ---
+                        stageStatuses.value[4] = 'Processing...';
+                        await new Promise(r => setTimeout(r, 400));
+                        stageStatuses.value[4] = 'Completed';
+
                         displayData.value = sessionData.value;
                     } catch (err) {
                         console.error("Session sync failed.", err);
@@ -178,7 +239,7 @@
 
                 onMounted(executeVisualSequence);
 
-                return { sessionData, displayData, stageStatuses, getStageClass, parsedMessages };
+                return { sessionData, displayData, stageStatuses, getStageClass, vpMessages, vendorMessages };
             }
         }).mount('#app');
     </script>
