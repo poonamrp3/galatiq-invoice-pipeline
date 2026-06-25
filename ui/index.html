@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galatiq Autonomous Control Room</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <div id="app" class="p-8 max-w-6xl mx-auto">
+        
+        <header class="mb-8 border-b border-gray-800 pb-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight text-indigo-400">Galatiq AI</h1>
+                <p class="text-gray-400 text-sm mt-1">Terminal Target: <span class="text-indigo-300 font-mono font-bold">{{ sessionData?.invoice_name }}</span></p>
+            </div>
+            <div class="bg-gray-800 px-4 py-2 rounded-lg text-xs font-mono border border-gray-700 text-emerald-400 animate-pulse">
+                🔴 LIVE TERMINAL OVERLAY
+            </div>
+        </header>
+
+        <div class="mb-8 bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-md">
+            <h3 class="text-xs uppercase tracking-wider text-gray-400 font-bold font-mono mb-4">Pipeline Status</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div :class="['p-3 rounded-lg border font-mono text-xs transition-all', getStageClass(1)]">
+                    <div class="font-bold mb-1">STAGE 1: LLM Ingestion</div>
+                    <div>{{ stageStatuses[1] }}</div>
+                </div>
+                <div :class="['p-3 rounded-lg border font-mono text-xs transition-all', getStageClass(2)]">
+                    <div class="font-bold mb-1">STAGE 2: SQLite Validation</div>
+                    <div>{{ stageStatuses[2] }}</div>
+                </div>
+                <div :class="['p-3 rounded-lg border font-mono text-xs transition-all', getStageClass(3)]">
+                    <div class="font-bold mb-1">STAGE 3: VP Negotiation</div>
+                    <div>{{ stageStatuses[3] }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="displayData" class="space-y-6">
+            
+            <div :class="['p-6 rounded-xl border flex justify-between items-center shadow-xl transition-all', 
+                          displayData.verdict.final_decision === 'APPROVED' ? 'bg-emerald-950/30 border-emerald-500/50 text-emerald-300' : 'bg-red-950/30 border-red-500/50 text-red-300']">
+                <div>
+                    <span class="text-xs uppercase tracking-wider font-bold opacity-75">Stage 3 Executive Decision</span>
+                    <h3 class="text-2xl font-black mt-1 tracking-wide">{{ displayData.verdict.final_decision }}</h3>
+                </div>
+                <div class="text-right font-mono text-xs">
+                    <div>HUMAN SIGN-OFF REQ: <span class="font-bold">{{ displayData.verdict.requires_human_signature }}</span></div>
+                    <div class="mt-1">NET TOTAL: <span class="font-bold">${{ displayData.extracted_data.total_amount?.toFixed(2) }}</span></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-xl space-y-4">
+                        <h3 class="text-md font-bold text-gray-200 border-b border-gray-700 pb-2">📂 Extracted Metrics</h3>
+                        <div class="space-y-2 text-xs font-mono">
+                            <div class="bg-gray-900/60 p-3 rounded-lg"><span class="text-gray-500 block text-[10px]">VENDOR</span><b class="text-gray-200">{{ displayData.extracted_data.vendor }}</b></div>
+                            <div class="bg-gray-900/60 p-3 rounded-lg"><span class="text-gray-500 block text-[10px]">INVOICE NUMBER</span><b class="text-gray-200">{{ displayData.extracted_data.invoice_number }}</b></div>
+                            <div class="bg-gray-900/60 p-3 rounded-lg"><span class="text-gray-500 block text-[10px]">GRAND TOTAL</span><b class="text-indigo-400">${{ displayData.extracted_data.total_amount?.toFixed(2) }}</b></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-xl">
+                        <h3 class="text-md font-bold text-gray-200 border-b border-gray-700 pb-2 mb-4">🛡️ Database Audit Checks</h3>
+                        <div v-if="displayData.validation_flags.length === 0" class="p-4 rounded-lg bg-emerald-950/30 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
+                            🟢 PASSED: Data verified cleanly against stock records.
+                        </div>
+                        <div v-else class="space-y-2">
+                            <div v-for="flag in displayData.validation_flags" :key="flag" class="p-4 rounded-lg bg-red-950/20 border border-red-500/20 text-red-400 text-xs font-mono">
+                                ⚠️ {{ flag }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-xl flex flex-col">
+                    <h3 class="text-md font-bold text-gray-200 border-b border-gray-700 pb-3 mb-4 flex items-center gap-2">
+                        💬 Active Negotiation Audit Trail
+                    </h3>
+                    
+                    <div class="space-y-4 max-h-[500px] overflow-y-auto pr-2 font-mono text-xs flex flex-col">
+                        <div v-for="(msg, index) in parsedMessages" :key="index" 
+                             :class="['p-4 rounded-xl max-w-[80%] border shadow-sm transition-all', 
+                                      msg.isInternal ? 'bg-indigo-950/40 border-indigo-500/40 align-self-end self-end text-right' : 'bg-gray-900/80 border-gray-700 align-self-start self-start text-left']">
+                            
+                            <div :class="['text-[10px] font-black uppercase tracking-wider mb-1', 
+                                          msg.isInternal ? 'text-indigo-400' : 'text-amber-400']">
+                                {{ msg.sender }}
+                            </div>
+                            
+                            <p class="text-gray-300 leading-relaxed font-sans text-left whitespace-pre-line">
+                                {{ msg.text }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, computed } = Vue;
+
+        createApp({
+            setup() {
+                const sessionData = ref(null);
+                const displayData = ref(null);
+                const stageStatuses = ref({ 1: 'Waiting...', 2: 'Waiting...', 3: 'Waiting...' });
+
+                // Multi-actor message splitter engine
+                const parsedMessages = computed(() => {
+                    if (!displayData.value || !displayData.value.verdict.justification_memo) return [];
+                    
+                    const rawText = displayData.value.verdict.justification_memo;
+                    
+                    // Splits on the specific sender introductory strings pattern
+                    const turns = rawText.split(/(Dear Gadgets Co\. Team:|Gadgets Co\. Sales Director:)/g);
+                    
+                    let messages = [];
+                    let currentSender = "";
+                    let isInternal = false;
+
+                    for (let item of turns) {
+                        let cleanItem = item.trim();
+                        if (!cleanItem) continue;
+
+                        if (cleanItem.includes("Dear Gadgets Co. Team:")) {
+                            currentSender = "Acme Corp Procurement (VP)";
+                            isInternal = true;
+                        } else if (cleanItem.includes("Gadgets Co. Sales Director:")) {
+                            currentSender = "Gadgets Co. Sales Director";
+                            isInternal = false;
+                        } else {
+                            messages.push({
+                                sender: currentSender || "System Audit Log Update",
+                                isInternal: isInternal,
+                                text: cleanItem.replace(/^"|"$|^'|'$/g, '') // Stripping quote markers
+                            });
+                        }
+                    }
+                    return messages;
+                });
+
+                const getStageClass = (stageNum) => {
+                    const status = stageStatuses.value[stageNum];
+                    if (status === 'Processing...') return 'bg-indigo-950/40 border-indigo-500 text-indigo-400 animate-pulse';
+                    if (status === 'Completed') return 'bg-emerald-950/20 border-emerald-500/40 text-emerald-400';
+                    return 'bg-gray-900/40 border-gray-800 text-gray-600';
+                };
+
+                const executeVisualSequence = async () => {
+                    try {
+                        const res = await fetch('session.json');
+                        sessionData.value = await res.json();
+
+                        stageStatuses.value[1] = 'Processing...';
+                        await new Promise(r => setTimeout(r, 300));
+                        stageStatuses.value[1] = 'Completed';
+
+                        stageStatuses.value[2] = 'Processing...';
+                        await new Promise(r => setTimeout(r, 200));
+                        stageStatuses.value[2] = 'Completed';
+
+                        stageStatuses.value[3] = 'Processing...';
+                        await new Promise(r => setTimeout(r, 300));
+                        stageStatuses.value[3] = 'Completed';
+
+                        displayData.value = sessionData.value;
+                    } catch (err) {
+                        console.error("Session sync failed.", err);
+                    }
+                };
+
+                onMounted(executeVisualSequence);
+
+                return { sessionData, displayData, stageStatuses, getStageClass, parsedMessages };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+{
+  "invoice_name": "invoice_1005.json",
+  "extracted_data": {
+    "vendor": "Global Supply Chain Partners",
+    "invoice_number": "INV-1005",
+    "date": "2026-01-18",
+    "due_date": "2026-03-18",
+    "items": [
+      {
+        "name": "WidgetA",
+        "quantity": 14,
+        "unit_price": 250.0
+      },
+      {
+        "name": "GadgetX",
+        "quantity": 8,
+        "unit_price": 750.0
+      },
+      {
+        "name": "WidgetB",
+        "quantity": 10,
+        "unit_price": 500.0
+      }
+    ],
+    "subtotal": 14500.0,
+    "tax_rate": 0.05,
+    "tax_amount": 725.0,
+    "shipping_amount": 0.0,
+    "total_amount": 15225.0,
+    "currency": "USD",
+    "payment_terms": "Net 60",
+    "notes": null,
+    "strategic_routing": {
+      "urgency_score": 5,
+      "payment_priority": "IMMEDIATE",
+      "days_to_settlement": -98,
+      "action_required_memo": "Critical: This invoice is 98 days past due relative to the system date (2026-06-24). Immediate payment routing is required despite the original Net 60 terms."
+    }
+  },
+  "validation_flags": [
+    "STOCK_MISMATCH: Requested 8 units of 'GadgetX', but only 5 are in stock."
+  ],
+  "verdict": {
+    "final_decision": "APPROVED",
+    "justification_memo": "Acme Corp initiated a counter-proposal for invoice INV-1005 due to a warehouse mismatch, requesting a reduction of 'GadgetX' from 8 units to 5 units. Global Supply Chain Partners accepted the quantity adjustment. After negotiating payment terms and potential discounts, both parties agreed to finalize the transaction with the adjusted quantity of 5 units of 'GadgetX' under the original Net 60 payment terms. This adjustment resulted in a final subtotal of $12,250.00 and a final total of $12,862.50 inclusive of 5% tax, which was officially approved by Acme Corp Finance.",
+    "negotiated_total": 12180.0
+  }
+}
