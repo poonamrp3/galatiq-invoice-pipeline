@@ -30,3 +30,49 @@ Before executing any agent workflows, you must seed the mock local inventory tra
 ```bash
 python setup_db.py
 ```
+
+## Environment Configuration
+
+Add the following API keys to your project's `.env` file if they are available:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key
+TOGETHER_API_KEY=your_together_api_key
+XAI_API_KEY=your_xai_api_key
+```
+
+---
+
+## Verify LLM Connectivity
+
+Run the following command to test connectivity with the configured LLM provider:
+
+```bash
+python test_connection.py
+```
+
+This script will communicate with the LLM corresponding to the API key you have configured and perform a connectivity check to verify that the credentials and endpoint are functioning correctly.
+
+---
+
+## Execute the Agentic Framework
+
+### 1. Custom Agentic Framework Implementation
+
+Run the following command to execute the custom multi-agent invoice processing workflow:
+
+```bash
+python -u main.py --invoice_path=data/invoices/invoice_1012.txt
+```
+
+---
+
+### 2. LangGraph-Based Agentic Workflow
+
+Run the following command to execute the LangGraph implementation of the agentic invoice processing workflow:
+
+```bash
+python -u main_langgraph.py --invoice_path=data/invoices/invoice_1012.txt
+```
+
+The workflow will process the specified invoice, perform validation checks, route approvals when required, and generate the final processing output.
