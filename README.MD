@@ -84,4 +84,4 @@ The workflow will process the specified invoice, perform validation checks, rout
 For a deep dive into the inner workings, engineering layouts, and file structures of this multi-agent system, please refer to our dedicated architecture guides:
 
 * **[ARCHITECTURE.md](ARCHITECTURE.md)** – Detailed architectural blueprint spanning the four sequential execution stages, dual-engine orchestrator design specs (`main.py` vs. `main_langgraph.py`), UI/UX control room mapping, and core engineering hurdles/solutions.
-* **[FILES_REGISTRY.md](FILES_REGISTRY.md)** *(formerly files_information.MD)* – Core module index mapping individual script purposes (`llm_factory.py`, `stage1_ingestion.py` through `stage4_payment.py`) and programmatic configurations.
+* **[FILES_REGISTER.md](FILES_REGISTER)** *(formerly files_information.MD)* – Core module index mapping individual script purposes (`llm_factory.py`, `stage1_ingestion.py` through `stage4_payment.py`) and programmatic configurations.
